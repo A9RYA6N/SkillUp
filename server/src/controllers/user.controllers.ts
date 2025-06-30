@@ -37,4 +37,27 @@ const login= async (req: Request, res: Response)=>{
     }
 }
 
-export{getUser, postUser, login}
+const signUp = async (req: Request, res: Response)=>{
+    const {name,email,dob,pass}=req.body;
+    const result=await client.query('select email from users where email=$1',[email]);
+    const rows=result.rows;
+    console.log(rows)
+    if(rows.length!=0)
+    {
+        res.status(400).json({success:false, message:"User already exists"})
+    }
+    else{
+        try {
+           const post = await client.query("insert into profile(email,name,dob) values ($1, $2, $3)", [email,name,dob])
+           console.log("Inserted into profile")
+           const post2 = await client.query("insert into users(email, password) values ($1, $2)", [email,pass])
+           console.log("Inserted into users")
+           res.status(200).json({success:true, message:"User succesfully signed in"})
+        } catch (error) {
+            console.error("Sign up error:", error);
+            res.status(500).json({success:false, message:"Error signing in"})
+        }
+    }
+}
+
+export{getUser, postUser, login, signUp}
